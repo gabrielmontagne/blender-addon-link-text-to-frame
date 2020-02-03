@@ -1,3 +1,8 @@
 = Link text to node frame
 
+Automatically create a linked text file for frame nodes on the node editor.
+Frames should have a label set -- these will be used as the name of the new text file.
 
+If _Raise in editor_, the new text file will appear first on all the text editors visible.
+
+image::preview.png[Preview]
