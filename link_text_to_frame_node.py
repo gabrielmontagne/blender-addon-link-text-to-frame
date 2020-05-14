@@ -41,11 +41,30 @@ class NODE_OP_link_text(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class NODE_OP_collate_text(bpy.types.Operator):
+    """Collate linked texts"""
+    bl_idname = "node.cllate_linked_frames"
+    bl_label = "Collate all linked texts"
+
+    @classmethod
+    def poll(cls, context):
+        return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'REROUTE' 
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+    def execute(self, context):
+        print('oka loka', self, context.active_node)
+        return {'FINISHED'}
+
 def register():
     print('register')
     bpy.utils.register_class(NODE_OP_link_text)
+    bpy.utils.register_class(NODE_OP_collate_text)
 
 def unregister():
+    bpy.utils.unregister_class(NODE_OP_collate_text)
     bpy.utils.unregister_class(NODE_OP_link_text)
 
 if __name__ == "__main__":
