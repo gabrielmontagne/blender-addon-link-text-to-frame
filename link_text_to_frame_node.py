@@ -16,7 +16,6 @@ def linked_reroutes(acc, start):
     result = acc + [ start ]
     to_nodes = [l.to_node for l in start.outputs[0].links if l.to_node]
     for n in to_nodes:
-        print('n', n)
         result = reduce(linked_reroutes, to_nodes, result)
     return result 
 
@@ -66,12 +65,29 @@ class NODE_OP_collate_text(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
     def execute(self, context):
-        print([n.name for n in find_linked(context.active_node)])
 
+        print('→')
+        linked = find_linked(context.active_node)
+
+        sum = ""
+
+        for l in linked:
+            parent = l.parent
+            if not parent: continue
+
+            label = parent.label or parent.name
+
+            sum += "\n# {}\n\n".format(label)
+
+            if parent.text:
+                sum += '\n'.join([l.body for l in parent.text.lines])
+                sum += '\n'
+
+
+        print(sum)
         return {'FINISHED'}
 
 def register():
-    print('register')
     bpy.utils.register_class(NODE_OP_link_text)
     bpy.utils.register_class(NODE_OP_collate_text)
 
