@@ -85,25 +85,15 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
             label = parent.label or parent.name
 
-            sum += "\n# {}\n\n".format(label)
+            sum += "# {}\n\n".format(label)
 
             if parent.text:
                 sum += '\n'.join([l.body for l in parent.text.lines])
                 sum += '\n'
 
-
-        print(sum)
-        print(type(self.target))
-        print('>{}<'.format(self.target))
-        print(list(bpy.data.texts))
-
         text = bpy.data.texts.get(self.target.strip())
         text.clear()
         text.write(sum)
-
-
-        # text.clear()
-        # text.write(sum)
         return {'FINISHED'}
 
 def register():
