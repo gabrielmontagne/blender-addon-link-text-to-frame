@@ -1,5 +1,6 @@
 import bpy
 from functools import reduce
+from bpy.props import StringProperty
 
 bl_info = {
     'name': 'Link Text to Node Frame',
@@ -53,12 +54,18 @@ class NODE_OP_link_text(bpy.types.Operator):
 
 class NODE_OP_collate_text(bpy.types.Operator):
     """Collate linked texts"""
-    bl_idname = "node.cllate_linked_frames"
+    bl_idname = "node.collate_linked_frames"
     bl_label = "Collate all linked texts"
+
+    target: StringProperty(name='File')
 
     @classmethod
     def poll(cls, context):
         return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'REROUTE' 
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop_search(self, 'target', bpy.data, 'texts')
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -66,7 +73,8 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
     def execute(self, context):
 
-        print('→')
+        if not self.target: return {'CANCELLED'}
+
         linked = find_linked(context.active_node)
 
         sum = ""
@@ -85,6 +93,17 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
 
         print(sum)
+        print(type(self.target))
+        print('>{}<'.format(self.target))
+        print(list(bpy.data.texts))
+
+        text = bpy.data.texts.get(self.target.strip())
+        text.clear()
+        text.write(sum)
+
+
+        # text.clear()
+        # text.write(sum)
         return {'FINISHED'}
 
 def register():
