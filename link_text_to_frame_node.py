@@ -15,7 +15,10 @@ def find_linked(start):
 def linked_reroutes(acc, start):
     result = acc + [ start ]
     to_nodes = [l.to_node for l in start.outputs[0].links if l.to_node]
-    return result + to_nodes
+    for n in to_nodes:
+        print('n', n)
+        result = reduce(linked_reroutes, to_nodes, result)
+    return result 
 
 class NODE_OP_link_text(bpy.types.Operator):
     """Link text to frame"""
@@ -63,7 +66,7 @@ class NODE_OP_collate_text(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
     def execute(self, context):
-        print(find_linked(context.active_node))
+        print([n.name for n in find_linked(context.active_node)])
 
         return {'FINISHED'}
 
