@@ -1,4 +1,5 @@
 import bpy
+from functools import reduce
 
 bl_info = {
     'name': 'Link Text to Node Frame',
@@ -8,6 +9,13 @@ bl_info = {
     'description': 'Quickly link a new text object to a frame node',
     'tracker_url': 'https://github.com/gabrielmontagne/blender-addon-link-text-to-frame/issues'
 }
+def find_linked(start):
+    return reduce(linked_reroutes,[ start ], [])
+
+def linked_reroutes(acc, start):
+    result = acc + [ start ]
+    to_nodes = [l.to_node for l in start.outputs[0].links if l.to_node]
+    return result + to_nodes
 
 class NODE_OP_link_text(bpy.types.Operator):
     """Link text to frame"""
@@ -55,7 +63,8 @@ class NODE_OP_collate_text(bpy.types.Operator):
         return wm.invoke_props_dialog(self)
 
     def execute(self, context):
-        print('oka loka', self, context.active_node)
+        print(find_linked(context.active_node))
+
         return {'FINISHED'}
 
 def register():
