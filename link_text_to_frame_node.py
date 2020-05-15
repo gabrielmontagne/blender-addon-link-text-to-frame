@@ -1,4 +1,6 @@
 import bpy
+from functools import reduce
+from bpy.props import StringProperty
 
 bl_info = {
     'name': 'Link Text to Node Frame',
@@ -8,6 +10,15 @@ bl_info = {
     'description': 'Quickly link a new text object to a frame node',
     'tracker_url': 'https://github.com/gabrielmontagne/blender-addon-link-text-to-frame/issues'
 }
+def find_linked(start):
+    return reduce(linked_reroutes,[ start ], [])
+
+def linked_reroutes(acc, start):
+    result = acc + [ start ]
+    to_nodes = [l.to_node for l in start.outputs[0].links if l.to_node]
+    for n in to_nodes:
+        result = reduce(linked_reroutes, to_nodes, result)
+    return result 
 
 class NODE_OP_link_text(bpy.types.Operator):
     """Link text to frame"""
@@ -43,23 +54,49 @@ class NODE_OP_link_text(bpy.types.Operator):
 
 class NODE_OP_collate_text(bpy.types.Operator):
     """Collate linked texts"""
-    bl_idname = "node.cllate_linked_frames"
+    bl_idname = "node.collate_linked_frames"
     bl_label = "Collate all linked texts"
+
+    target: StringProperty(name='File')
 
     @classmethod
     def poll(cls, context):
         return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'REROUTE' 
+
+    def draw(self, context):
+        layout = self.layout
+        layout.prop_search(self, 'target', bpy.data, 'texts')
 
     def invoke(self, context, event):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
     def execute(self, context):
-        print('oka loka', self, context.active_node)
+
+        if not self.target: return {'CANCELLED'}
+
+        linked = find_linked(context.active_node)
+
+        sum = ""
+
+        for l in linked:
+            parent = l.parent
+            if not parent: continue
+
+            label = parent.label
+
+            if label: sum += "# {}\n\n".format(label)
+
+            if parent.text:
+                sum += '\n'.join([l.body for l in parent.text.lines])
+                sum += '\n'
+
+        text = bpy.data.texts.get(self.target.strip())
+        text.clear()
+        text.write(sum)
         return {'FINISHED'}
 
 def register():
-    print('register')
     bpy.utils.register_class(NODE_OP_link_text)
     bpy.utils.register_class(NODE_OP_collate_text)
 
