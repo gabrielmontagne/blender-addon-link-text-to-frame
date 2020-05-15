@@ -1,8 +1,15 @@
 = Link text to node frame
 
+== Create linked text files
+
 Automatically create a linked text file for frame nodes on the node editor.
 Frames should have a label set -- these will be used as the name of the new text file.
 
 If _Raise in editor_, the new text file will appear first on all the text editors visible.
 
 image::preview.png[Preview]
+
+== Collate text file routes
+
+If you have a string of linked reroute nodes that are embedded in frames that are linked to text objects, select the first one, and use the 
+`Collate all linked texts` to join all the linked text files in the order they were linked in.
