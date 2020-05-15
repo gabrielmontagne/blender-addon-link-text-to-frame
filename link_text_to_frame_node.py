@@ -85,7 +85,7 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
             label = parent.label
 
-            if label: sum += "# {}\n\n".format(label)
+            if label: sum += "\n# {}\n\n".format(label)
 
             if parent.text:
                 sum += '\n'.join([l.body for l in parent.text.lines])
