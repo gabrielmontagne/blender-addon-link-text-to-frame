@@ -13,3 +13,6 @@ image::preview.png[Preview]
 
 If you have a string of linked reroute nodes that are embedded in frames that are linked to text objects, select the first one, and use the 
 `Collate all linked texts` to join all the linked text files in the order they were linked in.
+
+You can optionally save the file to the file system.
+Also, you can provide a command (with a context "current working directory") to be run after collation.
