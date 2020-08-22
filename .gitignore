@@ -1,2 +1,6 @@
 __pycache__
 *.blend
+test
+textures
+fonts
+*.fountain

@@ -61,7 +61,7 @@ class NODE_OP_collate_text(bpy.types.Operator):
     save_target: BoolProperty(name='Save target')
     target: StringProperty(name='To file')
     shell_command: StringProperty(name='Command')
-    shell_context: StringProperty(name='CWD', subtype='DIR_PATH')
+    shell_context: StringProperty(name='CWD', default='//', subtype='DIR_PATH')
 
     @classmethod
     def poll(cls, context):
@@ -72,11 +72,13 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
         row = layout.row()
         row.prop_search(self, 'target', bpy.data, 'texts')
+        row = layout.row()
         row.prop(self, 'save_target')
 
         row = layout.row()
         row.prop(self, 'shell_command')
-        row.prop_search(self, 'shell_context', bpy.data, 'texts')
+        row = layout.row()
+        row.prop(self, 'shell_context')
 
     def invoke(self, context, event):
         wm = context.window_manager
