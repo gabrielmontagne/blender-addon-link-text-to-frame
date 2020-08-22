@@ -69,7 +69,16 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'REROUTE' 
+
+        if context.area.type != 'NODE_EDITOR': 
+            return False
+
+        if context.active_node and context.active_node.type == 'REROUTE':
+            return True
+
+        start = context.space_data.node_tree.nodes.get('Start', None)
+
+        return start and start.type == 'REROUTE'
 
     def draw(self, context):
         layout = self.layout
@@ -92,7 +101,11 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
         if not self.target: return {'CANCELLED'}
 
-        linked = find_linked(context.active_node)
+        start = context.active_node
+        if start.type != 'REROUTE':
+            start = context.space_data.node_tree.nodes['Start']
+
+        linked = find_linked(start)
 
         sum = ""
 
