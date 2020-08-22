@@ -1,6 +1,9 @@
 import bpy
+from bpy.path import abspath
 from functools import reduce
-from bpy.props import StringProperty
+from bpy.props import StringProperty, BoolProperty
+from subprocess import run
+from shlex import split
 
 bl_info = {
     'name': 'Link Text to Node Frame',
@@ -49,15 +52,20 @@ class NODE_OP_link_text(bpy.types.Operator):
             for area in bpy.context.screen.areas:
                 if area.type == 'TEXT_EDITOR':
                     area.spaces[0].text = text
+                    break
 
         return {'FINISHED'}
 
 class NODE_OP_collate_text(bpy.types.Operator):
     """Collate linked texts"""
+
     bl_idname = "node.collate_linked_frames"
     bl_label = "Collate all linked texts"
 
-    target: StringProperty(name='File')
+    save_target: BoolProperty(name='Save target')
+    target: StringProperty(name='To file')
+    shell_command: StringProperty(name='Command')
+    shell_context: StringProperty(name='CWD', default='//', subtype='DIR_PATH')
 
     @classmethod
     def poll(cls, context):
@@ -65,7 +73,16 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop_search(self, 'target', bpy.data, 'texts')
+
+        row = layout.row()
+        row.prop_search(self, 'target', bpy.data, 'texts')
+        row = layout.row()
+        row.prop(self, 'save_target')
+
+        row = layout.row()
+        row.prop(self, 'shell_command')
+        row = layout.row()
+        row.prop(self, 'shell_context')
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -94,6 +111,17 @@ class NODE_OP_collate_text(bpy.types.Operator):
         text = bpy.data.texts.get(self.target.strip())
         text.clear()
         text.write(sum)
+
+        if self.save_target:
+            filepath = abspath(text.filepath or text.name_full)
+            with open(filepath, 'w') as o:
+                o.write(text.as_string())
+                print('Saved collate result to', filepath)
+
+        if self.shell_command:
+            print('run command', self.shell_command)
+            r = run(split(self.shell_command), cwd=abspath(self.shell_context))
+
         return {'FINISHED'}
 
 def register():
