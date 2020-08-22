@@ -2,6 +2,8 @@ import bpy
 from bpy.path import abspath
 from functools import reduce
 from bpy.props import StringProperty, BoolProperty
+from subprocess import run
+from shlex import split
 
 bl_info = {
     'name': 'Link Text to Node Frame',
@@ -113,7 +115,11 @@ class NODE_OP_collate_text(bpy.types.Operator):
             filepath = abspath(text.filepath or text.name_full)
             with open(filepath, 'w') as o:
                 o.write(text.as_string())
-                print('saved', filepath)
+                print('Saved collate result to', filepath)
+
+        if self.shell_command:
+            print('run command', self.shell_command)
+            r = run(split(self.shell_command), cwd=abspath(self.shell_context))
 
         return {'FINISHED'}
 
