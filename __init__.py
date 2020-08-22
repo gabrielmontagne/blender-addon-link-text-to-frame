@@ -1,4 +1,5 @@
 import bpy
+from bpy.path import abspath
 from functools import reduce
 from bpy.props import StringProperty, BoolProperty
 
@@ -104,12 +105,16 @@ class NODE_OP_collate_text(bpy.types.Operator):
                 sum += '\n'.join([l.body for l in parent.text.lines])
                 sum += '\n'
 
-
-        print('Ran! ★') 
-
         text = bpy.data.texts.get(self.target.strip())
         text.clear()
         text.write(sum)
+
+        if self.save_target:
+            filepath = abspath(text.filepath or text.name_full)
+            with open(filepath, 'w') as o:
+                o.write(text.as_string())
+                print('saved', filepath)
+
         return {'FINISHED'}
 
 def register():
