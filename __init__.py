@@ -52,6 +52,7 @@ class NODE_OP_link_text(bpy.types.Operator):
             for area in bpy.context.screen.areas:
                 if area.type == 'TEXT_EDITOR':
                     area.spaces[0].text = text
+                    break
 
         return {'FINISHED'}
 
