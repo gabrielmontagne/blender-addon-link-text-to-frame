@@ -32,7 +32,7 @@ class NODE_OP_link_text(bpy.types.Operator):
 
     @classmethod
     def poll(cls, context):
-        return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'FRAME' and context.active_node.label
+        return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'FRAME'
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -40,7 +40,7 @@ class NODE_OP_link_text(bpy.types.Operator):
 
     def execute(self, context):
         active_node = bpy.context.active_node
-        label = active_node.label
+        label = active_node.label or active_node.name
         text = active_node.text
 
         if not text:
