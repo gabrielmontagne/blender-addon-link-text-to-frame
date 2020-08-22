@@ -1,6 +1,6 @@
 import bpy
 from functools import reduce
-from bpy.props import StringProperty
+from bpy.props import StringProperty, BoolProperty
 
 bl_info = {
     'name': 'Link Text to Node Frame',
@@ -54,10 +54,14 @@ class NODE_OP_link_text(bpy.types.Operator):
 
 class NODE_OP_collate_text(bpy.types.Operator):
     """Collate linked texts"""
+
     bl_idname = "node.collate_linked_frames"
     bl_label = "Collate all linked texts"
 
-    target: StringProperty(name='File')
+    save_target: BoolProperty(name='Save target')
+    target: StringProperty(name='To file')
+    shell_command: StringProperty(name='Command')
+    shell_context: StringProperty(name='CWD', subtype='DIR_PATH')
 
     @classmethod
     def poll(cls, context):
@@ -65,7 +69,14 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
     def draw(self, context):
         layout = self.layout
-        layout.prop_search(self, 'target', bpy.data, 'texts')
+
+        row = layout.row()
+        row.prop_search(self, 'target', bpy.data, 'texts')
+        row.prop(self, 'save_target')
+
+        row = layout.row()
+        row.prop(self, 'shell_command')
+        row.prop_search(self, 'shell_context', bpy.data, 'texts')
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -90,6 +101,9 @@ class NODE_OP_collate_text(bpy.types.Operator):
             if parent.text:
                 sum += '\n'.join([l.body for l in parent.text.lines])
                 sum += '\n'
+
+
+        print('Ran! ★') 
 
         text = bpy.data.texts.get(self.target.strip())
         text.clear()
