@@ -66,6 +66,7 @@ class NODE_OP_collate_text(bpy.types.Operator):
     target: StringProperty(name='To file')
     shell_command: StringProperty(name='Command')
     shell_context: StringProperty(name='CWD', default='//', subtype='DIR_PATH')
+    unfurl_to_vse: BoolProperty(name='Unfurl to VSE')
 
     @classmethod
     def poll(cls, context):
@@ -85,6 +86,10 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
         row = layout.row()
         row.prop_search(self, 'target', bpy.data, 'texts')
+
+        row = layout.row()
+        row.prop(self, 'unfurl_to_vse')
+
         row = layout.row()
         row.prop(self, 'save_target')
 
@@ -92,6 +97,7 @@ class NODE_OP_collate_text(bpy.types.Operator):
         row.prop(self, 'shell_command')
         row = layout.row()
         row.prop(self, 'shell_context')
+
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -124,6 +130,9 @@ class NODE_OP_collate_text(bpy.types.Operator):
         text = bpy.data.texts.get(self.target.strip())
         text.clear()
         text.write(sum)
+
+        if self.unfurl_to_vse:
+            bpy.ops.unfurl.fountain_specific_to_strips(text=self.target)
 
         if self.save_target:
             filepath = abspath(text.filepath or text.name_full)
