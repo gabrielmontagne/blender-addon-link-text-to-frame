@@ -1,4 +1,5 @@
 import bpy
+from bpy.types import Operator
 from bpy.path import abspath
 from functools import reduce
 from bpy.props import StringProperty, BoolProperty
@@ -23,7 +24,7 @@ def linked_reroutes(acc, start):
         result = reduce(linked_reroutes, to_nodes, result)
     return result 
 
-class NODE_OP_link_text(bpy.types.Operator):
+class NODE_OP_link_text(Operator):
     """Link text to frame"""
     bl_idname = "node.link_text_to_frame"
     bl_label = "Link Text to Frame"
@@ -56,7 +57,7 @@ class NODE_OP_link_text(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class NODE_OP_collate_text(bpy.types.Operator):
+class NODE_OP_collate_text(Operator):
     """Collate linked texts"""
 
     bl_idname = "node.collate_linked_frames"
@@ -150,11 +151,42 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class NODE_OP_edit_next_text(Operator):
+    bl_idname = "node.edit_next_text"
+    bl_label = "Edit next text in linked texts"
+
+    @classmethod
+    def poll(cls, context):
+        space = bpy.context.space_data
+        return space.type == 'TEXT_EDITOR'
+
+    def execute(self, context):
+        print('exit next text', context.space_data)
+        return {'FINISHED'}
+    
+class NODE_OP_edit_prev_text(Operator):
+    bl_idname = "node.edit_prev_text"
+    bl_label = "Edit prev text in linked texts"
+
+    @classmethod
+    def poll(cls, context):
+        space = bpy.context.space_data
+        return space.type == 'TEXT_EDITOR'
+
+    def execute(self, context):
+        print('exit prev text', context.space_data)
+        return {'FINISHED'}
+
+
 def register():
     bpy.utils.register_class(NODE_OP_link_text)
     bpy.utils.register_class(NODE_OP_collate_text)
+    bpy.utils.register_class(NODE_OP_edit_next_text)
+    bpy.utils.register_class(NODE_OP_edit_prev_text)
 
 def unregister():
+    bpy.utils.unregister_class(NODE_OP_edit_next_text)
+    bpy.utils.unregister_class(NODE_OP_edit_prev_text)
     bpy.utils.unregister_class(NODE_OP_collate_text)
     bpy.utils.unregister_class(NODE_OP_link_text)
 
