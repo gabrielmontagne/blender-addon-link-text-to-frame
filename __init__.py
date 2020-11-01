@@ -1,4 +1,5 @@
 import bpy
+from bpy.types import Operator
 from bpy.path import abspath
 from functools import reduce
 from bpy.props import StringProperty, BoolProperty
@@ -13,6 +14,7 @@ bl_info = {
     'description': 'Quickly link a new text object to a frame node',
     'tracker_url': 'https://github.com/gabrielmontagne/blender-addon-link-text-to-frame/issues'
 }
+
 def find_linked(start):
     return reduce(linked_reroutes,[ start ], [])
 
@@ -21,9 +23,9 @@ def linked_reroutes(acc, start):
     to_nodes = [l.to_node for l in start.outputs[0].links if l.to_node]
     for n in to_nodes:
         result = reduce(linked_reroutes, to_nodes, result)
-    return result 
+    return result
 
-class NODE_OP_link_text(bpy.types.Operator):
+class NODE_OP_link_text(Operator):
     """Link text to frame"""
     bl_idname = "node.link_text_to_frame"
     bl_label = "Link Text to Frame"
@@ -56,7 +58,7 @@ class NODE_OP_link_text(bpy.types.Operator):
 
         return {'FINISHED'}
 
-class NODE_OP_collate_text(bpy.types.Operator):
+class NODE_OP_collate_text(Operator):
     """Collate linked texts"""
 
     bl_idname = "node.collate_linked_frames"
@@ -72,7 +74,7 @@ class NODE_OP_collate_text(bpy.types.Operator):
     @classmethod
     def poll(cls, context):
 
-        if context.area.type != 'NODE_EDITOR': 
+        if context.area.type != 'NODE_EDITOR':
             return False
 
         if context.active_node and context.active_node.type == 'REROUTE':
@@ -99,7 +101,6 @@ class NODE_OP_collate_text(bpy.types.Operator):
         row.prop(self, 'shell_command')
         row = layout.row()
         row.prop(self, 'shell_context')
-
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -150,11 +151,103 @@ class NODE_OP_collate_text(bpy.types.Operator):
 
         return {'FINISHED'}
 
+def find_frame_and_tree(text):
+    frame = None
+
+    for g in bpy.data.node_groups:
+        print('ǵ', g)
+        frames = [n for n in g.nodes if n.type == 'FRAME']
+        print('frames', frames)
+
+        try:
+            frame = next(f for f in frames if  f.text == text)
+            return frame, g
+        except:
+            continue
+
+    return None, None
+
+def find_text_offset(text, offset=1, stub_new=False):
+    frame, tree = find_frame_and_tree(text)
+
+    if not frame: return None
+
+    start = tree.nodes.get('Start', None)
+
+    if not start: return None
+
+    linked = find_linked(start)
+
+    print('stub new', stub_new)
+
+    if not stub_new:
+        texts = [l.parent.text for l in linked if l.parent and l.parent.text]
+    else:
+        parents = [l.parent for l in linked if l.parent and l.parent]
+        for p in parents:
+            if not p.text:
+                label = p.label or p.name
+                new_text = bpy.data.texts.new(label)
+                new_text.write('<+++>')
+                p.text = new_text
+
+        texts = [p.text for p in parents]
+
+    current_index = texts.index(text)
+
+    return texts[(current_index + offset) % len(texts)]
+
+
+class NODE_OP_edit_next_text(Operator):
+    bl_idname = "node.edit_next_text"
+    bl_label = "Edit next text in linked texts"
+
+    stub_new: BoolProperty('Stub new texts if missing', default=True)
+
+    @classmethod
+    def poll(cls, context):
+        space = bpy.context.space_data
+        return space.type == 'TEXT_EDITOR'
+
+    def execute(self, context):
+        text = context.space_data.text
+        new_text = find_text_offset(text, 1, self.stub_new)
+
+        if not new_text: return {'CANCELLED'}
+
+        context.space_data.text = new_text
+        return {'FINISHED'}
+
+
+class NODE_OP_edit_prev_text(Operator):
+    bl_idname = "node.edit_prev_text"
+    bl_label = "Edit prev text in linked texts"
+
+    stub_new: BoolProperty('Stub new texts if missing', default=True)
+
+    @classmethod
+    def poll(cls, context):
+        space = bpy.context.space_data
+        return space.type == 'TEXT_EDITOR'
+
+    def execute(self, context):
+        text = context.space_data.text
+        new_text = find_text_offset(text, -1, self.stub_new)
+
+        if not new_text: return {'CANCELLED'}
+
+        context.space_data.text = new_text
+        return {'FINISHED'}
+
 def register():
     bpy.utils.register_class(NODE_OP_link_text)
     bpy.utils.register_class(NODE_OP_collate_text)
+    bpy.utils.register_class(NODE_OP_edit_next_text)
+    bpy.utils.register_class(NODE_OP_edit_prev_text)
 
 def unregister():
+    bpy.utils.unregister_class(NODE_OP_edit_next_text)
+    bpy.utils.unregister_class(NODE_OP_edit_prev_text)
     bpy.utils.unregister_class(NODE_OP_collate_text)
     bpy.utils.unregister_class(NODE_OP_link_text)
 
