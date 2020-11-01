@@ -167,7 +167,7 @@ def find_frame_and_tree(text):
 
     return None, None
 
-def find_text_offset(text, offset=1):
+def find_text_offset(text, offset=1, stub_new=False):
     frame, tree = find_frame_and_tree(text)
 
     if not frame: return None
@@ -178,7 +178,20 @@ def find_text_offset(text, offset=1):
 
     linked = find_linked(start)
 
-    texts = [l.parent.text for l in linked if l.parent and l.parent.text]
+    print('stub new', stub_new)
+
+    if not stub_new:
+        texts = [l.parent.text for l in linked if l.parent and l.parent.text]
+    else:
+        parents = [l.parent for l in linked if l.parent and l.parent]
+        for p in parents:
+            if not p.text:
+                label = p.label or p.name
+                new_text = bpy.data.texts.new(label)
+                new_text.write('<+++>')
+                p.text = new_text
+
+        texts = [p.text for p in parents]
 
     current_index = texts.index(text)
 
@@ -189,6 +202,8 @@ class NODE_OP_edit_next_text(Operator):
     bl_idname = "node.edit_next_text"
     bl_label = "Edit next text in linked texts"
 
+    stub_new: BoolProperty('Stub new texts if missing', default=True)
+
     @classmethod
     def poll(cls, context):
         space = bpy.context.space_data
@@ -196,7 +211,7 @@ class NODE_OP_edit_next_text(Operator):
 
     def execute(self, context):
         text = context.space_data.text
-        new_text = find_text_offset(text, 1)
+        new_text = find_text_offset(text, 1, self.stub_new)
 
         if not new_text: return {'CANCELLED'}
 
@@ -208,6 +223,8 @@ class NODE_OP_edit_prev_text(Operator):
     bl_idname = "node.edit_prev_text"
     bl_label = "Edit prev text in linked texts"
 
+    stub_new: BoolProperty('Stub new texts if missing', default=True)
+
     @classmethod
     def poll(cls, context):
         space = bpy.context.space_data
@@ -215,7 +232,7 @@ class NODE_OP_edit_prev_text(Operator):
 
     def execute(self, context):
         text = context.space_data.text
-        new_text = find_text_offset(text, -1)
+        new_text = find_text_offset(text, -1, self.stub_new)
 
         if not new_text: return {'CANCELLED'}
 
