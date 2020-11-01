@@ -14,6 +14,7 @@ bl_info = {
     'description': 'Quickly link a new text object to a frame node',
     'tracker_url': 'https://github.com/gabrielmontagne/blender-addon-link-text-to-frame/issues'
 }
+
 def find_linked(start):
     return reduce(linked_reroutes,[ start ], [])
 
@@ -22,7 +23,7 @@ def linked_reroutes(acc, start):
     to_nodes = [l.to_node for l in start.outputs[0].links if l.to_node]
     for n in to_nodes:
         result = reduce(linked_reroutes, to_nodes, result)
-    return result 
+    return result
 
 class NODE_OP_link_text(Operator):
     """Link text to frame"""
@@ -73,7 +74,7 @@ class NODE_OP_collate_text(Operator):
     @classmethod
     def poll(cls, context):
 
-        if context.area.type != 'NODE_EDITOR': 
+        if context.area.type != 'NODE_EDITOR':
             return False
 
         if context.active_node and context.active_node.type == 'REROUTE':
@@ -100,7 +101,6 @@ class NODE_OP_collate_text(Operator):
         row.prop(self, 'shell_command')
         row = layout.row()
         row.prop(self, 'shell_context')
-
 
     def invoke(self, context, event):
         wm = context.window_manager
@@ -161,9 +161,26 @@ class NODE_OP_edit_next_text(Operator):
         return space.type == 'TEXT_EDITOR'
 
     def execute(self, context):
-        print('exit next text', context.space_data)
+        text = context.space_data.text
+        print('exit next text', context.space_data, text)
+
+        frame = None
+
+        for g in bpy.data.node_groups:
+            print('ǵ', g)
+            frames = [n for n in g.nodes if n.type == 'FRAME']
+            print('frames', frames)
+
+            try:
+                frame = next(f for f in frames if  f.text == text)
+            except:
+                continue
+
+
+        print('FRAME', frame)
+
         return {'FINISHED'}
-    
+
 class NODE_OP_edit_prev_text(Operator):
     bl_idname = "node.edit_prev_text"
     bl_label = "Edit prev text in linked texts"
@@ -176,7 +193,6 @@ class NODE_OP_edit_prev_text(Operator):
     def execute(self, context):
         print('exit prev text', context.space_data)
         return {'FINISHED'}
-
 
 def register():
     bpy.utils.register_class(NODE_OP_link_text)
