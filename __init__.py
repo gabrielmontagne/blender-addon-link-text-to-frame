@@ -167,6 +167,24 @@ def find_frame_and_tree(text):
 
     return None, None
 
+def find_text_offset(text, offset=1):
+    frame, tree = find_frame_and_tree(text)
+
+    if not frame: return None
+
+    start = tree.nodes.get('Start', None)
+
+    if not start: return None
+
+    linked = find_linked(start)
+
+    texts = [l.parent.text for l in linked if l.parent and l.parent.text]
+
+    current_index = texts.index(text)
+
+    return texts[(current_index + offset) % len(texts)]
+
+
 class NODE_OP_edit_next_text(Operator):
     bl_idname = "node.edit_next_text"
     bl_label = "Edit next text in linked texts"
@@ -178,31 +196,13 @@ class NODE_OP_edit_next_text(Operator):
 
     def execute(self, context):
         text = context.space_data.text
-        frame, tree = find_frame_and_tree(text)
+        new_text = find_text_offset(text, 1)
 
-        if not frame: return {'CANCELLED'}
+        if not new_text: return {'CANCELLED'}
 
-        start = tree.nodes.get('Start', None)
-
-        if not start: return {'CANCELLED'}
-
-        linked = find_linked(start)
-
-        texts = [l.parent.text for l in linked if l.parent and l.parent.text]
-
-        current_index = texts.index(text)
-
-        print('GO GO GO!', texts, current_index, (current_index + 1) % len(texts))
-
-        next_text = texts[(current_index + 1) % len(texts)]
-
-        print('next test', next_text)
-
-        print(dir(context.space_data))
-
-        context.space_data.text = next_text
-
+        context.space_data.text = new_text
         return {'FINISHED'}
+
 
 class NODE_OP_edit_prev_text(Operator):
     bl_idname = "node.edit_prev_text"
@@ -214,7 +214,12 @@ class NODE_OP_edit_prev_text(Operator):
         return space.type == 'TEXT_EDITOR'
 
     def execute(self, context):
-        print('exit prev text', context.space_data)
+        text = context.space_data.text
+        new_text = find_text_offset(text, -1)
+
+        if not new_text: return {'CANCELLED'}
+
+        context.space_data.text = new_text
         return {'FINISHED'}
 
 def register():
