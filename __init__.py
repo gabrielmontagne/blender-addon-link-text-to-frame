@@ -180,9 +180,27 @@ class NODE_OP_edit_next_text(Operator):
         text = context.space_data.text
         frame, tree = find_frame_and_tree(text)
 
-        print('** FRAME', frame, tree)
-
         if not frame: return {'CANCELLED'}
+
+        start = tree.nodes.get('Start', None)
+
+        if not start: return {'CANCELLED'}
+
+        linked = find_linked(start)
+
+        texts = [l.parent.text for l in linked if l.parent and l.parent.text]
+
+        current_index = texts.index(text)
+
+        print('GO GO GO!', texts, current_index, (current_index + 1) % len(texts))
+
+        next_text = texts[(current_index + 1) % len(texts)]
+
+        print('next test', next_text)
+
+        print(dir(context.space_data))
+
+        context.space_data.text = next_text
 
         return {'FINISHED'}
 
