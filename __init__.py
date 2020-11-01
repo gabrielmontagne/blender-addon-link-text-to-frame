@@ -143,10 +143,8 @@ class NODE_OP_collate_text(Operator):
             filepath = abspath(text.filepath or text.name_full)
             with open(filepath, 'w') as o:
                 o.write(text.as_string())
-                print('Saved collate result to', filepath)
 
         if self.shell_command:
-            print('run command', self.shell_command)
             r = run(split(self.shell_command), cwd=abspath(self.shell_context))
 
         return {'FINISHED'}
@@ -155,9 +153,7 @@ def find_frame_and_tree(text):
     frame = None
 
     for g in bpy.data.node_groups:
-        print('ǵ', g)
         frames = [n for n in g.nodes if n.type == 'FRAME']
-        print('frames', frames)
 
         try:
             frame = next(f for f in frames if  f.text == text)
@@ -177,8 +173,6 @@ def find_text_offset(text, offset=1, stub_new=False):
     if not start: return None
 
     linked = find_linked(start)
-
-    print('stub new', stub_new)
 
     if not stub_new:
         texts = [l.parent.text for l in linked if l.parent and l.parent.text]
