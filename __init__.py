@@ -151,6 +151,22 @@ class NODE_OP_collate_text(Operator):
 
         return {'FINISHED'}
 
+def find_frame_and_tree(text):
+    frame = None
+
+    for g in bpy.data.node_groups:
+        print('ǵ', g)
+        frames = [n for n in g.nodes if n.type == 'FRAME']
+        print('frames', frames)
+
+        try:
+            frame = next(f for f in frames if  f.text == text)
+            return frame, g
+        except:
+            continue
+
+    return None, None
+
 class NODE_OP_edit_next_text(Operator):
     bl_idname = "node.edit_next_text"
     bl_label = "Edit next text in linked texts"
@@ -162,22 +178,11 @@ class NODE_OP_edit_next_text(Operator):
 
     def execute(self, context):
         text = context.space_data.text
-        print('exit next text', context.space_data, text)
+        frame, tree = find_frame_and_tree(text)
 
-        frame = None
+        print('** FRAME', frame, tree)
 
-        for g in bpy.data.node_groups:
-            print('ǵ', g)
-            frames = [n for n in g.nodes if n.type == 'FRAME']
-            print('frames', frames)
-
-            try:
-                frame = next(f for f in frames if  f.text == text)
-            except:
-                continue
-
-
-        print('FRAME', frame)
+        if not frame: return {'CANCELLED'}
 
         return {'FINISHED'}
 
