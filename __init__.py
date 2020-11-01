@@ -9,7 +9,7 @@ from shlex import split
 bl_info = {
     'name': 'Link Text to Node Frame',
     'author': 'gabriel montagné, gabriel@tibas.london',
-    'version': (0, 0, 1),
+    'version': (1, 0, 0),
     'blender': (2, 80, 0),
     'description': 'Quickly link a new text object to a frame node',
     'tracker_url': 'https://github.com/gabrielmontagne/blender-addon-link-text-to-frame/issues'
