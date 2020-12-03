@@ -23,3 +23,6 @@ When you are editing a text that's linked by frames and reroutes you run the `no
 It will, by default, stub missing texts.
 
 TIP: Link these to Ctrl ] and Ctrl [ on your key mappings.
+See below
+
+image::shortcuts.png[Shortcuts]
