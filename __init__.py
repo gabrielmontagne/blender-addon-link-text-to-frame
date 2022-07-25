@@ -107,6 +107,7 @@ class NODE_OP_collate_text(Operator):
 
     save_target: BoolProperty(name='Save target')
     target: StringProperty(name='To file')
+    add_context_label: BoolProperty(name='Add context labels', default=True)
     shell_command: StringProperty(name='Command')
     shell_context: StringProperty(name='CWD', default='//', subtype='DIR_PATH')
     unfurl_to_vse: BoolProperty(name='Unfurl to VSE')
@@ -130,6 +131,9 @@ class NODE_OP_collate_text(Operator):
 
         row = layout.row()
         row.prop_search(self, 'target', bpy.data, 'texts')
+
+        row = layout.row()
+        row.prop(self, 'add_context_label')
 
         row = layout.row()
         row.prop(self, 'unfurl_to_vse')
@@ -159,9 +163,19 @@ class NODE_OP_collate_text(Operator):
 
         sum = ""
 
+        last_context = ""
+
         for l in linked:
             parent = l.parent
             if not parent: continue
+
+            if self.add_context_label:
+                context_frame = parent.parent
+                if context_frame:
+                    current_context = context_frame.label
+                    if current_context != last_context:
+                        sum += f"\n{current_context}\n"
+                        last_context = current_context
 
             label = parent.label
 
