@@ -29,14 +29,16 @@ def linked_reroutes(acc, start):
 
 class NODES_OP_split_frame(bpy.types.Operator):
     """Split frame from text"""
-    bl_idname = "node.split_frame_from_text"
+    bl_idname = "node.xsplit_frame_from_text"
     bl_label = "Split Frame From Text"
 
+    unlink_texts: BoolProperty(name='Unlink texts', default=True)
     from_file: StringProperty(name='File')
 
     def draw(self, context):
         layout = self.layout
         layout.prop_search(self, "from_file", bpy.data, 'texts')
+        layout.prop(self, "unlink_texts")
 
     @classmethod
     def poll(cls, context):
@@ -59,6 +61,8 @@ class NODES_OP_split_frame(bpy.types.Operator):
             bpy.ops.node.duplicate()
             bpy.ops.node.translate_attach(TRANSFORM_OT_translate={'value': (0, -(h + MARGIN), 0)})
             context.active_node.label = line
+            if self.unlink_texts:
+                context.active_node.text = None
 
         return {'FINISHED'}
 
@@ -67,7 +71,7 @@ class NODE_OP_link_text(Operator):
     bl_idname = "node.link_text_to_frame"
     bl_label = "Link Text to Frame"
 
-    raise_in_editor: bpy.props.BoolProperty(name='Raise in editor', default=True)
+    raise_in_editor: BoolProperty(name='Raise in editor', default=True)
 
     @classmethod
     def poll(cls, context):
@@ -228,7 +232,6 @@ def find_text_offset(text, offset=1, stub_new=False):
 
     return texts[(current_index + offset) % len(texts)]
 
-
 class NODE_OP_edit_next_text(Operator):
     bl_idname = "node.edit_next_text"
     bl_label = "Edit next text in linked texts"
@@ -248,7 +251,6 @@ class NODE_OP_edit_next_text(Operator):
 
         context.space_data.text = new_text
         return {'FINISHED'}
-
 
 class NODE_OP_edit_prev_text(Operator):
     bl_idname = "node.edit_prev_text"
