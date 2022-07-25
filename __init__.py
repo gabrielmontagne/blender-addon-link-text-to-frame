@@ -27,10 +27,10 @@ def linked_reroutes(acc, start):
         result = reduce(linked_reroutes, to_nodes, result)
     return result
 
-class NODES_OP_split_frame(bpy.types.Operator):
-    """Split frame from text"""
-    bl_idname = "node.xsplit_frame_from_text"
-    bl_label = "Split Frame From Text"
+class NODE_OP_split_frame_from_lines(bpy.types.Operator):
+    """Split frame from lines"""
+    bl_idname = "node.split_frame_from_lines"
+    bl_label = "Split frame from lines"
 
     unlink_texts: BoolProperty(name='Unlink texts', default=True)
     from_file: StringProperty(name='File')
@@ -273,7 +273,7 @@ class NODE_OP_edit_prev_text(Operator):
         return {'FINISHED'}
 
 def register():
-    bpy.utils.register_class(NODES_OP_split_frame)
+    bpy.utils.register_class(NODE_OP_split_frame_from_lines)
     bpy.utils.register_class(NODE_OP_link_text)
     bpy.utils.register_class(NODE_OP_collate_text)
     bpy.utils.register_class(NODE_OP_edit_next_text)
@@ -284,7 +284,7 @@ def unregister():
     bpy.utils.unregister_class(NODE_OP_edit_prev_text)
     bpy.utils.unregister_class(NODE_OP_collate_text)
     bpy.utils.unregister_class(NODE_OP_link_text)
-    bpy.utils.unregister_class(NODES_OP_split_frame)
+    bpy.utils.unregister_class(NODE_OP_split_frame_from_lines)
 
 if __name__ == "__main__":
     register()
