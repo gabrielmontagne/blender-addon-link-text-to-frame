@@ -14,12 +14,18 @@ image::preview.png[Preview]
 If you have a string of linked reroute nodes that are embedded in frames that are linked to text objects, select the first one, and use the 
 `Collate all linked texts` to join all the linked text files in the order they were linked in.
 
+If no reroute node if selected, the operator will look for a node named (not labeled) `Start`.   If a routing node is selected, the operation will start from that node.
+
 You can optionally save the file to the file system.
 Also, you can provide a command (with a context "current working directory") to be run after collation.
 
 == Edit prev / next text on the linked frames
 
 When you are editing a text that's linked by frames and reroutes you run the `node.edit_next_text` and `node.edit_prev_text` texts to switch to the next linked text.
+
+This requires that the node tree has a reroute path going through the frames whose first node is named (not labeled) `Start`.
+
+
 It will, by default, stub missing texts.
 
 TIP: Link these to Ctrl ] and Ctrl [ on your key mappings.
