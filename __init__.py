@@ -1,10 +1,12 @@
 import bpy
-from bpy.types import Operator
+from bpy.types import Operator, Panel
 from bpy.path import abspath
 from functools import reduce
-from bpy.props import StringProperty, BoolProperty
+from bpy.props import StringProperty, BoolProperty, IntProperty
 from subprocess import run
 from shlex import split
+from requests import post, get
+from IPython import embed
 
 bl_info = {
     'name': 'Link Text to Node Frame',
@@ -98,6 +100,73 @@ class NODE_OP_link_text(Operator):
                     break
 
         return {'FINISHED'}
+
+class NODE_OP_post_to_texere(Operator):
+    """Post text to Téxere Sereno"""
+    bl_idname = "node.post_text_to_texere"
+    bl_label = "Post text to texere"
+
+    server_port: IntProperty(description='Proccessing server port', default=3000)
+
+    @classmethod
+    def poll(cls, context):
+        space = bpy.context.space_data
+        try:
+            filepath = space.text.name
+            if filepath.strip() == "": return False
+            return (space.type == 'TEXT_EDITOR')
+        except AttributeError: return False
+
+    def execute(self, context):
+        space = context.space_data
+        r = post(f'http://0.0.0.0:{self.server_port}/note', space.text.as_string().encode())
+        if r.ok:
+            return {'FINISHED'}
+        self.report({'ERROR'}, f'Unable to connect to texere notes on port {self.server_port} - is it running?')
+        return {'CANCELLED'}
+
+class NODE_OP_get_from_texere(Operator):
+    """Get text from Téxere Sereno"""
+    bl_idname = "node.get_text_from_texere"
+    bl_label = "Get text from texere"
+
+    server_port: IntProperty(description='Proccessing server port', default=3000)
+
+    @classmethod
+    def poll(cls, context):
+        space = bpy.context.space_data
+        try:
+            filepath = space.text.name
+            if filepath.strip() == "": return False
+            return (space.type == 'TEXT_EDITOR')
+        except AttributeError: return False
+
+    def execute(self, context):
+        space = context.space_data
+        r = get(f'http://0.0.0.0:{self.server_port}/note')
+
+        if r.ok:
+            text = space.text
+            text.clear()
+            text.write(r.text)
+            return {'FINISHED'}
+
+        self.report({'ERROR'}, f'Unable to connect to texere notes on port {self.server_port} - is it running?')
+        return {'CANCELLED'}
+
+class NODE_PT_texere_panel(Panel):
+    """Controls for interacting with Texere Sereno"""
+    bl_label = "Post to Téxere Sereno"
+    bl_space_type = 'TEXT_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Text"
+
+    def draw(self, context):
+        layout = self.layout
+        row = layout.row(align=True)
+        row.operator('node.post_text_to_texere')
+        row = layout.row(align=True)
+        row.operator('node.get_text_from_texere')
 
 class NODE_OP_collate_text(Operator):
     """Collate linked texts"""
@@ -292,8 +361,14 @@ def register():
     bpy.utils.register_class(NODE_OP_collate_text)
     bpy.utils.register_class(NODE_OP_edit_next_text)
     bpy.utils.register_class(NODE_OP_edit_prev_text)
+    bpy.utils.register_class(NODE_OP_post_to_texere)
+    bpy.utils.register_class(NODE_OP_get_from_texere)
+    bpy.utils.register_class(NODE_PT_texere_panel)
 
 def unregister():
+    bpy.utils.unregister_class(NODE_PT_texere_panel)
+    bpy.utils.unregister_class(NODE_OP_post_to_texere)
+    bpy.utils.unregister_class(NODE_OP_get_from_texere)
     bpy.utils.unregister_class(NODE_OP_edit_next_text)
     bpy.utils.unregister_class(NODE_OP_edit_prev_text)
     bpy.utils.unregister_class(NODE_OP_collate_text)
