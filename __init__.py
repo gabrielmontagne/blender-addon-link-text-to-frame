@@ -68,6 +68,53 @@ class NODE_OP_split_frame_from_lines(bpy.types.Operator):
 
         return {'FINISHED'}
 
+class NODE_OP_relink_text(Operator):
+    """Relink text from frame"""
+    bl_idname = "node.relink_text_from_frame"
+    bl_label = "Relink Text to Frame - a new one, even if present."
+
+    raise_in_editor: BoolProperty(name='Raise in editor', default=True)
+
+    @classmethod
+    def poll(cls, context):
+        return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'FRAME'
+
+    def invoke(self, context, event):
+        wm = context.window_manager
+        return wm.invoke_props_dialog(self)
+
+    def execute(self, context):
+        active_node = bpy.context.active_node
+        label = active_node.label or active_node.name
+
+        text = bpy.data.texts.new(label)
+        text.write('<+++>')
+        active_node.text = text
+
+        if self.raise_in_editor:
+            for area in bpy.context.screen.areas:
+                if area.type == 'TEXT_EDITOR':
+                    area.spaces[0].text = text
+                    break
+
+        return {'FINISHED'}
+
+class NODE_OP_unlink_text(Operator):
+    """Unlink text from frame"""
+    bl_idname = "node.unlink_text_from_frame"
+    bl_label = "Unlink Text from Frame"
+
+    @classmethod
+    def poll(cls, context):
+        return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'FRAME'
+
+    def execute(self, context):
+        active_node = bpy.context.active_node
+        active_node.text = None
+
+        return {'FINISHED'}
+
+
 class NODE_OP_link_text(Operator):
     """Link text to frame"""
     bl_idname = "node.link_text_to_frame"
@@ -358,6 +405,8 @@ class NODE_OP_edit_prev_text(Operator):
 def register():
     bpy.utils.register_class(NODE_OP_split_frame_from_lines)
     bpy.utils.register_class(NODE_OP_link_text)
+    bpy.utils.register_class(NODE_OP_unlink_text)
+    bpy.utils.register_class(NODE_OP_relink_text)
     bpy.utils.register_class(NODE_OP_collate_text)
     bpy.utils.register_class(NODE_OP_edit_next_text)
     bpy.utils.register_class(NODE_OP_edit_prev_text)
@@ -372,7 +421,9 @@ def unregister():
     bpy.utils.unregister_class(NODE_OP_edit_next_text)
     bpy.utils.unregister_class(NODE_OP_edit_prev_text)
     bpy.utils.unregister_class(NODE_OP_collate_text)
+    bpy.utils.unregister_class(NODE_OP_relink_text)
     bpy.utils.unregister_class(NODE_OP_link_text)
+    bpy.utils.unregister_class(NODE_OP_unlink_text)
     bpy.utils.unregister_class(NODE_OP_split_frame_from_lines)
 
 if __name__ == "__main__":
