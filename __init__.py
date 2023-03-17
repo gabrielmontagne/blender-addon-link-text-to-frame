@@ -6,7 +6,6 @@ from bpy.props import StringProperty, BoolProperty, IntProperty
 from subprocess import run
 from shlex import split
 from requests import post, get
-from IPython import embed
 
 bl_info = {
     'name': 'Link Text to Node Frame',
