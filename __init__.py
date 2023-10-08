@@ -147,6 +147,45 @@ class NODE_OP_link_text(Operator):
 
         return {'FINISHED'}
 
+class NODE_OP_edit_in_vim(Operator):
+    """Edit text in Vim server"""
+
+    bl_idname = "node.edit_text_in_vim"
+    bl_label = "Edit text in Vim"
+
+    vim_servername: StringProperty(description='Proccessing server port', default='texere')
+
+    @classmethod
+    def poll(cls, context):
+        space = bpy.context.space_data
+        try:
+            name = space.text.name
+            if name.strip() == "": return False
+            return (space.type == 'TEXT_EDITOR')
+        except AttributeError: return False
+
+    def execute(self, context):
+        space = context.space_data
+        text = space.text
+        name = text.name
+        filepath = text.filepath
+
+        if not filepath:
+            self.report({'ERROR'}, 'Unable to open unsaved file')
+            return {'CANCELLED'}
+
+        check = run(split(f'vim --serverlist'), capture_output=True)
+        servers = check.stdout.decode().lower().splitlines()
+
+        if not self.vim_servername.lower() in servers:
+            self.report({'ERROR'}, f'Unable to find Vim server {self.vim_servername}')
+            return {'CANCELLED'}
+
+        r = run(split(f'vim --servername {self.vim_servername} --remote {filepath}'))
+
+        return {'FINISHED'}
+
+
 class NODE_OP_post_to_texere(Operator):
     """Post text to Téxere Sereno"""
     bl_idname = "node.post_text_to_texere"
@@ -209,6 +248,8 @@ class NODE_PT_texere_panel(Panel):
 
     def draw(self, context):
         layout = self.layout
+        row = layout.row(align=True)
+        row.operator('node.edit_text_in_vim')
         row = layout.row(align=True)
         row.operator('node.post_text_to_texere')
         row = layout.row(align=True)
@@ -410,11 +451,13 @@ def register():
     bpy.utils.register_class(NODE_OP_edit_next_text)
     bpy.utils.register_class(NODE_OP_edit_prev_text)
     bpy.utils.register_class(NODE_OP_post_to_texere)
+    bpy.utils.register_class(NODE_OP_edit_in_vim)
     bpy.utils.register_class(NODE_OP_get_from_texere)
     bpy.utils.register_class(NODE_PT_texere_panel)
 
 def unregister():
     bpy.utils.unregister_class(NODE_PT_texere_panel)
+    bpy.utils.unregister_class(NODE_OP_edit_in_vim)
     bpy.utils.unregister_class(NODE_OP_post_to_texere)
     bpy.utils.unregister_class(NODE_OP_get_from_texere)
     bpy.utils.unregister_class(NODE_OP_edit_next_text)
