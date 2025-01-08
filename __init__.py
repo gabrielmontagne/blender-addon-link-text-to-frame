@@ -194,7 +194,7 @@ class NODE_OP_post_to_texere(Operator):
     server_port: IntProperty(description='Proccessing server port', default=3000)
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _):
         space = bpy.context.space_data
         try:
             filepath = space.text.name
@@ -218,7 +218,7 @@ class NODE_OP_get_from_texere(Operator):
     server_port: IntProperty(description='Proccessing server port', default=3000)
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _):
         space = bpy.context.space_data
         try:
             filepath = space.text.name
