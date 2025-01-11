@@ -78,11 +78,11 @@ class NODE_OP_relink_text(Operator):
     def poll(cls, context):
         return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'FRAME'
 
-    def invoke(self, context, event):
+    def invoke(self, context, _):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
-    def execute(self, context):
+    def execute(self, _):
         active_node = bpy.context.active_node
         label = active_node.label or active_node.name
 
@@ -107,7 +107,7 @@ class NODE_OP_unlink_text(Operator):
     def poll(cls, context):
         return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'FRAME'
 
-    def execute(self, context):
+    def execute(self, _):
         active_node = bpy.context.active_node
         active_node.text = None
 
