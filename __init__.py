@@ -28,6 +28,16 @@ def linked_reroutes(acc, start):
         result = reduce(linked_reroutes, to_nodes, result)
     return result
 
+
+def build_frame_hierarchy_label(frame):
+    label = frame.label
+    while frame.parent:
+        frame = frame.parent
+        if frame.label:
+            label = f"{frame.label} {label}"
+
+    return label
+
 class NODE_OP_split_frame_from_lines(bpy.types.Operator):
     """Split frame from lines"""
     bl_idname = "node.split_frame_from_lines"
@@ -167,7 +177,6 @@ class NODE_OP_edit_in_vim(Operator):
     def execute(self, context):
         space = context.space_data
         text = space.text
-        name = text.name
         filepath = text.filepath
 
         if not filepath:
@@ -253,14 +262,13 @@ class NODE_PT_frame_context_panel(Panel):
         layout = self.layout
         row = layout.row()
         row.label(text=f"CONTEXT {name}")
-        frame, tree = find_frame_and_tree(text)
+        frame, _ = find_frame_and_tree(text)
         if not frame: return
 
-        print('FRAME', frame)
-        print('TREE', tree)
-
         row = layout.row()
-        row.label(text=f"CONTEXT {frame.name}")
+        row.label(text=build_frame_hierarchy_label(frame))
+
+
 
 
 
