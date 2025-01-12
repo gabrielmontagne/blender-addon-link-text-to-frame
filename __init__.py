@@ -156,7 +156,7 @@ class NODE_OP_edit_in_vim(Operator):
     vim_servername: StringProperty(description='Proccessing server port', default='texere')
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _):
         space = bpy.context.space_data
         try:
             name = space.text.name
@@ -246,10 +246,24 @@ class NODE_PT_frame_context_panel(Panel):
     bl_region_type = 'UI'
     bl_category = "Text"
 
-    def draw(self, _):
+    def draw(self, context):
+        space = context.space_data
+        text = space.text
+        name = text.name
         layout = self.layout
         row = layout.row()
-        row.label(text="CONTEXT")
+        row.label(text=f"CONTEXT {name}")
+        frame, tree = find_frame_and_tree(text)
+        if not frame: return
+
+        print('FRAME', frame)
+        print('TREE', tree)
+
+        row = layout.row()
+        row.label(text=f"CONTEXT {frame.name}")
+
+
+
 
 class NODE_PT_texere_panel(Panel):
     """Controls for interacting with Texere Sereno"""
