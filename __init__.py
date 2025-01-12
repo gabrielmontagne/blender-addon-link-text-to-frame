@@ -36,7 +36,7 @@ class NODE_OP_split_frame_from_lines(bpy.types.Operator):
     unlink_texts: BoolProperty(name='Unlink texts', default=True)
     from_file: StringProperty(name='File')
 
-    def draw(self, context):
+    def draw(self, _):
         layout = self.layout
         layout.prop_search(self, "from_file", bpy.data, 'texts')
         layout.prop(self, "unlink_texts")
@@ -45,13 +45,13 @@ class NODE_OP_split_frame_from_lines(bpy.types.Operator):
     def poll(cls, context):
         return context.area.type == 'NODE_EDITOR' and context.active_node and context.active_node.type == 'FRAME'
 
-    def invoke(self, context, event):
+    def invoke(self, context, _):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
     def execute(self, context):
         active_node = context.active_node
-        w, h = active_node.dimensions
+        _, h = active_node.dimensions
 
         lines = [l.body.strip() for l in bpy.data.texts[self.from_file].lines if l.body.strip()]
         assert len(lines), 'Should have at least one line'
@@ -239,6 +239,18 @@ class NODE_OP_get_from_texere(Operator):
         self.report({'ERROR'}, f'Unable to connect to texere notes on port {self.server_port} - is it running?')
         return {'CANCELLED'}
 
+class NODE_PT_frame_context_panel(Panel):
+    """"Where are we on the node editor"""
+    bl_label = "Node/Text context"
+    bl_space_type = 'TEXT_EDITOR'
+    bl_region_type = 'UI'
+    bl_category = "Text"
+
+    def draw(self, _):
+        layout = self.layout
+        row = layout.row()
+        row.label(text="CONTEXT")
+
 class NODE_PT_texere_panel(Panel):
     """Controls for interacting with Texere Sereno"""
     bl_label = "Post to Téxere Sereno"
@@ -246,7 +258,7 @@ class NODE_PT_texere_panel(Panel):
     bl_region_type = 'UI'
     bl_category = "Text"
 
-    def draw(self, context):
+    def draw(self, _):
         layout = self.layout
         row = layout.row(align=True)
         row.operator('node.edit_text_in_vim')
@@ -254,6 +266,7 @@ class NODE_PT_texere_panel(Panel):
         row.operator('node.post_text_to_texere')
         row = layout.row(align=True)
         row.operator('node.get_text_from_texere')
+
 
 class NODE_OP_collate_text(Operator):
     """Collate linked texts"""
@@ -282,7 +295,7 @@ class NODE_OP_collate_text(Operator):
 
         return start and start.type == 'REROUTE'
 
-    def draw(self, context):
+    def draw(self, _):
         layout = self.layout
 
         row = layout.row()
@@ -303,7 +316,7 @@ class NODE_OP_collate_text(Operator):
         row = layout.row()
         row.prop(self, 'shell_context')
 
-    def invoke(self, context, event):
+    def invoke(self, context, _):
         wm = context.window_manager
         return wm.invoke_props_dialog(self)
 
@@ -409,7 +422,7 @@ class NODE_OP_edit_next_text(Operator):
     stub_new: BoolProperty('Stub new texts if missing', default=True)
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _):
         space = bpy.context.space_data
         return space.type == 'TEXT_EDITOR'
 
@@ -429,7 +442,7 @@ class NODE_OP_edit_prev_text(Operator):
     stub_new: BoolProperty('Stub new texts if missing', default=True)
 
     @classmethod
-    def poll(cls, context):
+    def poll(cls, _):
         space = bpy.context.space_data
         return space.type == 'TEXT_EDITOR'
 
@@ -442,31 +455,28 @@ class NODE_OP_edit_prev_text(Operator):
         context.space_data.text = new_text
         return {'FINISHED'}
 
+cls = (
+    NODE_OP_split_frame_from_lines,
+    NODE_OP_link_text,
+    NODE_OP_unlink_text,
+    NODE_OP_relink_text,
+    NODE_OP_collate_text,
+    NODE_OP_edit_next_text,
+    NODE_OP_edit_prev_text,
+    NODE_OP_post_to_texere,
+    NODE_OP_edit_in_vim,
+    NODE_OP_get_from_texere,
+    NODE_PT_frame_context_panel,
+    NODE_PT_texere_panel
+)
+
 def register():
-    bpy.utils.register_class(NODE_OP_split_frame_from_lines)
-    bpy.utils.register_class(NODE_OP_link_text)
-    bpy.utils.register_class(NODE_OP_unlink_text)
-    bpy.utils.register_class(NODE_OP_relink_text)
-    bpy.utils.register_class(NODE_OP_collate_text)
-    bpy.utils.register_class(NODE_OP_edit_next_text)
-    bpy.utils.register_class(NODE_OP_edit_prev_text)
-    bpy.utils.register_class(NODE_OP_post_to_texere)
-    bpy.utils.register_class(NODE_OP_edit_in_vim)
-    bpy.utils.register_class(NODE_OP_get_from_texere)
-    bpy.utils.register_class(NODE_PT_texere_panel)
+    for c in cls:
+        bpy.utils.register_class(c)
 
 def unregister():
-    bpy.utils.unregister_class(NODE_PT_texere_panel)
-    bpy.utils.unregister_class(NODE_OP_edit_in_vim)
-    bpy.utils.unregister_class(NODE_OP_post_to_texere)
-    bpy.utils.unregister_class(NODE_OP_get_from_texere)
-    bpy.utils.unregister_class(NODE_OP_edit_next_text)
-    bpy.utils.unregister_class(NODE_OP_edit_prev_text)
-    bpy.utils.unregister_class(NODE_OP_collate_text)
-    bpy.utils.unregister_class(NODE_OP_relink_text)
-    bpy.utils.unregister_class(NODE_OP_link_text)
-    bpy.utils.unregister_class(NODE_OP_unlink_text)
-    bpy.utils.unregister_class(NODE_OP_split_frame_from_lines)
+    for c in reversed(cls):
+        bpy.utils.unregister_class(c)
 
 if __name__ == "__main__":
     register()
